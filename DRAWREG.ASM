@@ -36,12 +36,14 @@ Int09	proc
 EOP:
 
 Main:	
+	cli
 	mov bx, 0h					;
 	mov es, bx					;
 	mov bx, 4*9					;
 	mov es:[bx], offset Int09	;
 	mov ax, cs					;
 	mov es:[bx+2], ax			;Put in int table new 9th int
+	sti
 	
 	mov ax, 3100h
 	mov dx, offset EOP
