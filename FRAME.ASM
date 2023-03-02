@@ -87,17 +87,19 @@ PutFrameLine    proc
                 endp
 ;--------------------------------
 
-
 ;--------------------------------
 ;EXPECTS:   es->videomemory
+;
 ;INPUTS:    bx - offset in vmem
-;		    ah - color atr
+;		    ah - color atr for reg
+;           dh - color atr for numbers
+;
 ;DESTROYS:  bx, di, cx
 ;--------------------------------
-DrawReg proc
+DrawRegText proc
     xor di, di          ;di = 0
     lea di, cs:RegText
-    mov cx, 13d         ;length of text
+    mov cx, 11d         ;length of text
     
     __loop:
         mov al, cs:[di]
@@ -110,13 +112,48 @@ DrawReg proc
         add bx, 160d
         inc di
         loop __loop
-
     ret
 
-endp DrawReg
+endp DrawRegText
+;--------------------------------
+RegText: db 'ax','bx','cx','dx','si','di','bp','sp','ds','es','ss'
+;--------------------------------
+;EXPECTS:   es->videomemory
+;
+;INPUTS:    bx - offset in vmem
+;           dh - color atr for numbers
+;          Stack:   ax      <--top
+;                   bx
+;                   cx
+;                   dx
+;                   si
+;                   di
+;                   bp
+;                   sp
+;                   ds
+;                   es
+;                   ss
+;                   
+;DESTROYS:  ax, di, bx, cx, si, bp
+;--------------------------------
+DrawRegNumber proc
+    pop bp                  ;save return address
+    mov di, 11d
+    __next:
+        pop ax
+        call OutputNum16
+        add bx, 8d          ;horisontal offset
+        add bx, 160d        ;vertical   offset
+
+        dec di
+        cmp di, 0
+        jne __next
+    push bp                 ;recover return addres
+    ret
+
+endp DrawRegNumber
 ;--------------------------------
 
-RegText: db 'ax','bx','cx','dx','si','di','bp','sp','ds','es','ss','cs','ip'
 
 .data
 ;           0:[left  up   corner]
