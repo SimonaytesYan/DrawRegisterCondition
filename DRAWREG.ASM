@@ -15,16 +15,34 @@ NewInt09	proc
 	push bp						;
 	push di						;save regs
 
-	mov bx, 0b800h				;<----------------------|
-	mov es, bx					;						|
-	mov si, offset double_frame	;						|
-	mov bp,	2*160d+134d			;offset in vmem			|
-	mov dh, 15d					;height of the frame	|
-	mov dl, 7d					;weight of the frame	|
-	mov ah, 07eh				;color atr				|	DRAW FRAME
-								;						|				
-	call DrawFrame				;<----------------------|
+	in al, 60h					;get scan-code from 60-th pin
+	cmp al, 43d					;\ or | buttons
 
+	jne __end_draw_frame
+		mov bx, 0b800h				;<----------------------|
+		mov es, bx					;			 			|
+		mov bp,	2*160d+134d			;offset in vmem			|
+		mov dh, 15d					;height of the frame	| ARGUMENTS TO DRAW FRAME
+		mov dl, 7d					;weight of the frame	|
+		mov ah, 07eh				;color atr      <-------|
+		
+		xor bx, bx
+		lea bx, cs:is_frame_visible							;put in bx offset of the labal is_frame_visible
+		mov word ptr cx, cs:[bx]							;put in cx status is_frame_visible
+		cmp cx, 1
+
+		je __clear_frame
+			mov si, cs:[offset double_frame]				;symbols to frame
+			mov word ptr cs:[bx], 1d						;set new status
+			call DrawFrame
+			jmp __end_draw_frame
+		__clear_frame:
+			mov ah, 1d
+			mov si, cs:[offset empty_frame]					;symbols to frame
+			mov word ptr cs:[bx], 0d						;set new status
+			call DrawFrame
+
+__end_draw_frame:
 	pop di						;
 	pop bp						;
 	pop cx						;
@@ -39,6 +57,8 @@ Old09Offset		dw 0			;jmp offset
 Old90Segment 	dw 0			;jmp segment
 
 endp NewInt09
+
+is_frame_visible: dw 0
 
 include FRAME.ASM
 

@@ -101,3 +101,5 @@ PutFrameLine    proc
 single_frame db 0dah, 0c4h, 0bfh, '|',  ' ', '|',  0c0h, '-',  0d9h
 
 double_frame db 0c9h, 0cdh, 0bbh, 0bah, ' ', 0bah, 0c8h, 0cdh, 0bch
+
+empty_frame db 9 dup(' ')
