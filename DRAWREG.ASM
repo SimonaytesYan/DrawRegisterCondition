@@ -3,33 +3,46 @@
 org 100h
 locals __
 
-Start:	jmp Main
-
+Start:	jmp Main	
 
 NewInt09	proc
 	push es						;
 	push bx						;
-	push ax						;save regs
-	
-	mov bx, 0b800h
-	mov es, bx
-	mov bx, 160d*5+80d
-	
-	mov ah, 07eh
-	in al, 60h					;get scan-code
-	mov word ptr es:[bx], ax	;put in videomem
-	
+	push dx						;
+	push ax						;
+	push si						;
+	push cx						;
+	push bp						;
+	push di						;save regs
+
+	mov bx, 0b800h				;<----------------------|
+	mov es, bx					;						|
+	mov si, offset double_frame	;						|
+	mov bp,	2*160d+134d			;offset in vmem			|
+	mov dh, 15d					;height of the frame	|
+	mov dl, 7d					;weight of the frame	|
+	mov ah, 07eh				;color atr				|	DRAW FRAME
+								;						|				
+	call DrawFrame				;<----------------------|
+
+	pop di						;
+	pop bp						;
+	pop cx						;
+	pop si						;
 	pop ax						;
+	pop dx						;
 	pop bx						;
 	pop es						;recover value of registers
-
-	pushf
-	db  09ah					;make jmp far
+				
+	db  0eah					;make jmp far
 Old09Offset		dw 0			;jmp offset
 Old90Segment 	dw 0			;jmp segment
-	iret
 
 endp NewInt09
+
+include FRAME.ASM
+
+EOP:
 
 Main:	
 	xor bx, bx								;
@@ -42,16 +55,15 @@ Main:
 	mov word ptr [Old90Segment], ax			;save address of old interruption handler
 
 	cli
-	mov es:[bx], offset NewInt09	;
-	mov ax, cs						;
-	mov es:[bx+2], ax				;Put in int table new 9th int
+	mov es:[bx], offset NewInt09			;
+	mov ax, cs								;
+	mov es:[bx+2], ax						;Put in int table new 9th int
 	sti
-	
+
 	mov ax, 3100h
 	mov dx, offset EOP
-	shr dx, 4					;Convert to paragraphs
-	inc dx						;Round up
-	int 21h						;End program with saving code of new int in memory
+	shr dx, 4								;Convert to paragraphs
+	inc dx									;Round up
+	int 21h									;End program with saving code of new int in memory
 
-EOP:
 end Start
