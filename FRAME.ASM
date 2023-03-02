@@ -137,23 +137,25 @@ RegText: db 'ax','bx','cx','dx','si','di','bp','sp','ds','es','ss'
 ;DESTROYS:  ax, di, bx, cx, si, bp
 ;--------------------------------
 DrawRegNumber proc
-    pop bp                  ;save return address
+    mov bp, sp
     mov di, 11d
+    inc bp
+    inc bp
     __next:
-        pop ax
+        mov word ptr ax, cs:[bp]
         call OutputNum16
         add bx, 8d          ;horisontal offset
         add bx, 160d        ;vertical   offset
 
+        inc bp
+        inc bp
         dec di
         cmp di, 0
         jne __next
-    push bp                 ;recover return addres
     ret
 
 endp DrawRegNumber
 ;--------------------------------
-
 
 .data
 ;           0:[left  up   corner]

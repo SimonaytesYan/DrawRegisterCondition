@@ -6,43 +6,30 @@ locals __
 Start:	jmp Main	
 
 NewInt09	proc
+	push ss						;
 	push es						;
-	push bx						;
-	push dx						;
-	push ax						;
-	push si						;
-	push cx						;
+	push ds						;
+	push sp						;
 	push bp						;
-	push di						;save regs
+	push di						;
+	push si						;
+	push dx						;
+	push cx						;
+	push bx						;
+	push ax						;save regs
 	
-	push ax
 	in al, 60h					;get scan-code from 60-th pin
 	cmp al, 43d					;\ or | buttons
-	pop ax
-
+	
 	jne __end_draw_frame
-		push bx
-		push cx
 		xor bx, bx
-		lea bx, cs:is_frame_visible							;put in bx offset of the labal is_frame_visible
+		lea bx, cs:is_frame_visible							;put in bx offset of the label is_frame_visible
 		mov word ptr cx, cs:[bx]							;put in cx status is_frame_visible
 		cmp cx, 1
-		pop cx
-		pop bx
 
-		je __clear_frame
-			push ss
-			push es
-			push ds
-			push sp
-			push bp
-			push di
-			push si
-			push dx
-			push cx
-			push bx
-			push ax
-			
+		je __clear_frame			
+			mov word ptr cs:[bx], 1d	;set new status
+
 			mov bx, 0b800h				;<----------------------|
 			mov es, bx					;			 			|
 			mov bp,	2*160d+134d			;offset in vmem			|
@@ -50,8 +37,7 @@ NewInt09	proc
 			mov dl, 9d					;weight of the frame	|
 			mov ah, 07eh				;color atr      <-------|
 
-			mov si, cs:[offset double_frame]				;symbols to frame
-			mov word ptr cs:[bx], 1d						;set new status
+			mov si, cs:[offset double_frame]			;symbols to frame
 			call DrawFrame
 
 			mov bx, 3*160d+136d
@@ -62,21 +48,31 @@ NewInt09	proc
 			call DrawRegNumber
 		
 			jmp __end_draw_frame
-		__clear_frame:
-			mov ah, 1d
-			mov si, cs:[offset empty_frame]					;symbols to frame
+		__clear_frame:			
 			mov word ptr cs:[bx], 0d						;set new status
+			
+			mov bx, 0b800h				;<----------------------|
+			mov es, bx					;			 			|
+			mov bp,	2*160d+134d			;offset in vmem			|
+			mov dh, 13d					;height of the frame	| ARGUMENTS TO DRAW FRAME
+			mov dl, 9d					;weight of the frame <--|
+			mov ah, 1d
+
+			mov si, cs:[offset empty_frame]					;symbols to frame
 			call DrawFrame
 
 __end_draw_frame:
+	pop ax						;
+	pop bx						;
+	pop cx						;
+	pop dx						;
+	pop si						;
 	pop di						;
 	pop bp						;
-	pop cx						;
-	pop si						;
-	pop ax						;
-	pop dx						;
-	pop bx						;
-	pop es						;recover value of registers
+	pop sp						;
+	pop ds						;
+	pop es						;
+	pop ss						;recover value of registers
 				
 	db  0eah					;make jmp far
 Old09Offset		dw 0			;jmp offset
