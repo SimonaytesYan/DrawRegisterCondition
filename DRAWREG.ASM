@@ -35,6 +35,10 @@ NewInt09	proc
 			mov si, cs:[offset double_frame]				;symbols to frame
 			mov word ptr cs:[bx], 1d						;set new status
 			call DrawFrame
+
+			mov bx, 3*160d+136d
+			call DrawReg 
+		
 			jmp __end_draw_frame
 		__clear_frame:
 			mov ah, 1d
@@ -61,10 +65,11 @@ endp NewInt09
 is_frame_visible: dw 0
 
 include FRAME.ASM
+include SMALLIB.ASM
 
 EOP:
 
-Main:	
+Main:
 	xor bx, bx								;
 	mov es, bx								;es = 0
 	mov bx, 4*9								;Set es:[bx] to int table ot 9-th interruption

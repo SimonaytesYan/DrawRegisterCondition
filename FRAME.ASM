@@ -87,6 +87,37 @@ PutFrameLine    proc
                 endp
 ;--------------------------------
 
+
+;--------------------------------
+;EXPECTS:   es->videomemory
+;INPUTS:    bx - offset in vmem
+;		    ah - color atr
+;DESTROYS:  bx, di, cx
+;--------------------------------
+DrawReg proc
+    xor di, di          ;di = 0
+    lea di, cs:RegText
+    mov cx, 13d         ;length of text
+    
+    __loop:
+        mov al, cs:[di]
+        mov es:[bx], ax
+        inc di
+
+        mov al, cs:[di]
+        mov es:[bx+2], ax
+
+        add bx, 160d
+        inc di
+        loop __loop
+
+    ret
+
+endp DrawReg
+;--------------------------------
+
+RegText: db 'ax','bx','cx','dx','si','di','bp','sp','ds','es','ss','cs','ip'
+
 .data
 ;           0:[left  up   corner]
 ;           1:[up         border]
