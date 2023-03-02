@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    03/02/23 23:45:02	    Page 1
+Turbo Assembler	 Version 4.1	    03/03/23 01:09:45	    Page 1
 drawreg.asm
 
 
@@ -10,536 +10,589 @@ drawreg.asm
       5
       6	0100  E9 0032r		     Start:  jmp Main
       7
-      8	0103			     NewInt09	     proc
-      9	0103  16			     push ss					     ;
-     10	0104  06			     push es					     ;
-     11	0105  1E			     push ds					     ;
-     12	0106  54			     push sp					     ;
-     13	0107  55			     push bp					     ;
-     14	0108  57			     push di					     ;
-     15	0109  56			     push si					     ;
-     16	010A  52			     push dx					     ;
-     17	010B  51			     push cx					     ;
-     18	010C  53			     push bx					     ;
-     19	010D  50			     push ax					     ;save regs
-     20
-     21	010E  E4 60			     in	al, 60h					     ;get scan-code from 60-th pin
-     22	0110  3C 2B			     cmp al, 43d				     ;\	or | buttons
-     23
-     24	0112  75 50			     jne __end_draw_frame
-     25	0114  33 DB				     xor bx, bx
-     26	0116  BB 0174r				     lea bx, cs:is_frame_visible						    +
-     27				     ;put in bx	offset of the label is_frame_visible
-     28	0119  2E: 8B 0F				     mov word ptr cx, cs:[bx]							    +
-     29				     ;put in cx	status is_frame_visible
-     30	011C  83 F9 01				     cmp cx, 1
+      8	0103			     NewInt08 proc
+      9
+     10	0103  16			     push ss					     ;
+     11	0104  06			     push es					     ;
+     12	0105  1E			     push ds					     ;
+     13	0106  54			     push sp					     ;
+     14	0107  55			     push bp					     ;
+     15	0108  57			     push di					     ;
+     16	0109  56			     push si					     ;
+     17	010A  52			     push dx					     ;
+     18	010B  51			     push cx					     ;
+     19	010C  53			     push bx					     ;
+     20	010D  50			     push ax					     ;save regs
+     21
+     22	010E  BB 019Ar			     lea bx, cs:is_frame_visible						     ;put in+
+     23				     bx	offset of the label is_frame_visible
+     24	0111  2E: 8B 0F			     mov word ptr cx, cs:[bx]							     ;put in+
+     25				     cx	status is_frame_visible
+     26	0114  83 F9 00			     cmp cx, 0
+     27
+     28	0117  74 22			     je	__end_draw_frame
+     29	0119  BB B800				     mov bx, 0b800h
+     30	011C  8E C3				     mov es, bx
      31
-     32	011F  74 2A				     je	__clear_frame
-     33	0121  2E: C7 07	0001				     mov word ptr cs:[bx], 1d	     ;set new status
-     34
-     35	0126  BB B800					     mov bx, 0b800h			     ;<----------------------|
-     36	0129  8E C3					     mov es, bx					     ;			    +
-     37				     |
-     38	012B  BD 01C6					     mov bp, 2*160d+134d		     ;offset in	vmem		    +
+     32	011E  BD 01C6				     mov bp, 2*160d+134d				     ;offset in	vmem	    +
+     33				     |
+     34	0121  B6 0D				     mov dh, 13d						     ;height of	the +
+     35				     frame    |
+     36	0123  B2 09				     mov dl, 9d							     ;weight of	the +
+     37				     frame    |	ARGUMENTS TO DRAW FRAME
+     38	0125  B4 7E				     mov ah, 07eh					     ;color atr		    +
      39				     |
-     40	012E  B6 0D					     mov dh, 13d				     ;height of	the frame   +
-     41				     | ARGUMENTS TO DRAW FRAME
-     42	0130  B2 09					     mov dl, 9d					     ;weight of	the frame   +
-     43				     |
-     44	0132  B4 7E					     mov ah, 07eh			     ;color atr	     <-------|
+     40	0127  BE 0009r				     mov si, cs:[offset	double_frame]	     ;symbols to frame		     |
+     41	012A  E8 006F				     call DrawFrame
+     42
+     43	012D  BB 0268				     mov bx, 3*160d+136d
+     44	0130  E8 00C7				     call DrawRegText
      45
-     46	0134  BE 0009r					     mov si, cs:[offset	double_frame]			     ;symbols to    +
-     47				     frame
-     48	0137  E8 003C					     call DrawFrame
+     46	0133  BB 0276				     mov bx, 3*160d+150d
+     47	0136  B6 71				     mov dh, 71h
+     48	0138  E8 00F3				     call DrawRegNumber
      49
-     50	013A  BB 0268					     mov bx, 3*160d+136d
-     51	013D  E8 0094					     call DrawRegText
-     52
-     53	0140  BB 0276					     mov bx, 3*160d+150d
-     54	0143  B6 71					     mov dh, 71h
-     55	0145  E8 00C0					     call DrawRegNumber
-     56
-     57	0148  EB 1A 90					     jmp __end_draw_frame
-Turbo Assembler	 Version 4.1	    03/02/23 23:45:02	    Page 2
+     50	013B			     __end_draw_frame:
+     51	013B  58			     pop ax					     ;
+     52	013C  5B			     pop bx					     ;
+     53	013D  59			     pop cx					     ;
+     54	013E  5A			     pop dx					     ;
+     55	013F  5E			     pop si					     ;
+     56	0140  5F			     pop di					     ;
+     57	0141  5D			     pop bp					     ;
+Turbo Assembler	 Version 4.1	    03/03/23 01:09:45	    Page 2
 drawreg.asm
 
 
 
-     58	014B					     __clear_frame:
-     59	014B  2E: C7 07	0000				     mov word ptr cs:[bx], 0d						    +
-     60				     ;set new status
-     61
-     62	0150  BB B800					     mov bx, 0b800h			     ;<----------------------|
-     63	0153  8E C3					     mov es, bx					     ;			    +
-     64				     |
-     65	0155  BD 01C6					     mov bp, 2*160d+134d		     ;offset in	vmem		    +
-     66				     |
-     67	0158  B6 0D					     mov dh, 13d				     ;height of	the frame   +
-     68				     | ARGUMENTS TO DRAW FRAME
-     69	015A  B2 09					     mov dl, 9d					     ;weight of	the frame   +
-     70				     <--|
-     71	015C  B4 01					     mov ah, 1d
-     72
-     73	015E  BE 0012r					     mov si, cs:[offset	empty_frame]					    +
-     74				     ;symbols to frame
-     75	0161  E8 0012					     call DrawFrame
-     76
-     77	0164			     __end_draw_frame:
-     78	0164  58			     pop ax					     ;
-     79	0165  5B			     pop bx					     ;
-     80	0166  59			     pop cx					     ;
-     81	0167  5A			     pop dx					     ;
-     82	0168  5E			     pop si					     ;
-     83	0169  5F			     pop di					     ;
-     84	016A  5D			     pop bp					     ;
-     85	016B  5C			     pop sp					     ;
-     86	016C  1F			     pop ds					     ;
-     87	016D  07			     pop es					     ;
-     88	016E  17			     pop ss					     ;recover value of registers
-     89
-     90	016F  EA			     db	 0eah					     ;make jmp far
-     91	0170  0000		     Old09Offset	     dw	0		     ;jmp offset
-     92	0172  0000		     Old90Segment    dw	0		     ;jmp segment
-     93
-     94	0174			     endp NewInt09
-     95
-     96	0174  0000		     is_frame_visible: dw 0
-     97
-     98				     include FRAME.ASM
-1    99
-1   100				     ;--------------------------------
-1   101				     ;EXPECTS:	 es->videomemory
-1   102				     ;INPUTS:	 bp - offset in	vmem
-1   103				     ;			 dh - height of	frame
-1   104				     ;			 dl - weight of	frame
-1   105				     ;			 ah - color atr
-1   106				     ;		 si - pointer to array with 9 symbols to draw frame in format:
-1   107				     ;		 0:[left  up   corner]
-1   108				     ;		 1:[up	       border]
-1   109				     ;		 2:[right up   corner]
-1   110				     ;		 3:[left       border]
-1   111				     ;		 4:[symbol to fill frame]
-1   112				     ;		 5:[right      border]
-1   113				     ;		 6:[left  down corner]
-1   114				     ;		 7:[bottom     border]
-Turbo Assembler	 Version 4.1	    03/02/23 23:45:02	    Page 3
+     58	0142  5C			     pop sp					     ;
+     59	0143  1F			     pop ds					     ;
+     60	0144  07			     pop es					     ;
+     61	0145  17			     pop ss					     ;recover value of registers
+     62
+     63
+     64	0146  EA			     db	 0eah					     ;make jmp far
+     65	0147  0000			     Old08Offset	     dw	0		     ;jmp offset
+     66	0149  0000			     Old08Segment    dw	0		     ;jmp segment
+     67	014B			     endp NewInt08
+     68
+     69	014B			     NewInt09	     proc
+     70	014B  16			     push ss					     ;
+     71	014C  06			     push es					     ;
+     72	014D  1E			     push ds					     ;
+     73	014E  54			     push sp					     ;
+     74	014F  55			     push bp					     ;
+     75	0150  57			     push di					     ;
+     76	0151  56			     push si					     ;
+     77	0152  52			     push dx					     ;
+     78	0153  51			     push cx					     ;
+     79	0154  53			     push bx					     ;
+     80	0155  50			     push ax					     ;save regs
+     81
+     82	0156  E4 60			     in	al, 60h					     ;get scan-code from 60-th pin
+     83	0158  3C 2B			     cmp al, 43d				     ;\	or | buttons
+     84
+     85	015A  75 2E			     jne __end_draw_frame
+     86	015C  33 DB				     xor bx, bx
+     87	015E  BB 019Ar				     lea bx, cs:is_frame_visible				     ;put in bx	    +
+     88				     offset of the label is_frame_visible
+     89	0161  2E: 8B 0F				     mov word ptr cx, cs:[bx]					     ;put in cx	    +
+     90				     status is_frame_visible
+     91	0164  83 F9 01				     cmp cx, 1
+     92
+     93	0167  74 08				     je	__clear_frame
+     94	0169  2E: C7 07	0001				     mov word ptr cs:[bx], 1d				     ;set new status
+     95	016E  EB 1A 90					     jmp __end_draw_frame
+     96	0171					     __clear_frame:
+     97	0171  2E: C7 07	0000				     mov word ptr cs:[bx], 0d						    +
+     98				     ;set new status
+     99
+    100	0176  BB B800					     mov bx, 0b800h			     ;				    +
+    101				     |
+    102	0179  8E C3					     mov es, bx					     ;			    +
+    103				     |
+    104	017B  BD 01C6					     mov bp, 2*160d+134d		     ;offset in	vmem		    +
+    105				     |
+    106	017E  B6 0D					     mov dh, 13d				     ;height of	the frame   +
+    107				     | ARGUMENTS TO DRAW FRAME
+    108	0180  B2 09					     mov dl, 9d					     ;weight of	the frame   +
+    109				     |
+    110	0182  B4 01					     mov ah, 1d
+    111
+    112	0184  BE 0012r					     mov si, cs:[offset	empty_frame]					    +
+    113				     ;symbols to frame
+    114	0187  E8 0012					     call DrawFrame
+Turbo Assembler	 Version 4.1	    03/03/23 01:09:45	    Page 3
 drawreg.asm
 
 
 
-1   115				     ;		 8:[right down corner]
-1   116				     ;
-1   117				     ;OUTPUTS:	 None
-1   118				     ;DESTROYS:	 bx, cx, di, bp, al, dx
-1   119				     ;--------------------------------
-1   120	0176			     DrawFrame	 proc
-1   121	0176  80 EA 02			 sub dl, 2	     ;now we don`t consider the	1-st and the last symbol, because them we   +
-    122				     will put without loops
-1   123	0179  80 EE 02			 sub dh, 2	     ;the same reason
-1   124
-1   125	017C  8B FD			 mov di, bp
-1   126	017E  2E: 8A 04			 mov al, cs:[si	+ 0]
-1   127	0181  2E: 8A 5C	01		 mov bl, cs:[si	+ 1]
-1   128	0185  2E: 8A 7C	02		 mov bh, cs:[si	+ 2]
-1   129	0189  33 C9			 xor cx, cx	     ;
-1   130	018B  8A CA			 mov cl, dl	     ;cx = dl
-1   131	018D  E8 003A			 call PutFrameLine   ;draw the first line
-1   132
-1   133	0190  81 C5 00A0		 add bp, 160d	     ;go to the	next line
-1   134
-1   135	0194  2E: 8A 5C	04		 mov bl, cs:[si	+ 4]
-1   136	0198  2E: 8A 7C	05		 mov bh, cs:[si	+ 5]
-1   137	019C				 __next:
-1   138	019C  8B FD			     mov di, bp
-1   139	019E  2E: 8A 44	03		     mov al, cs:[si + 3]    ;rewrite in	the loop because in PutFrameLine al destroys
-1   140	01A2  33 C9			     xor cx, cx		 ;
-1   141	01A4  8A CA			     mov cl, dl		 ;cx = dl
-1   142	01A6  E8 0021			     call PutFrameLine	 ;draw all middle lines
-1   143	01A9  81 C5 00A0		     add bp, 160d	 ;go to	the next line
-1   144
-1   145	01AD  FE CE			     dec dh		 ;dh--
-1   146	01AF  80 FE 00			     cmp dh, 0
-1   147	01B2  75 E8			     jne __next		 ;while(dh!=0)
-1   148
-1   149	01B4  8B FD			 mov di, bp
-1   150	01B6  2E: 8A 44	06		 mov al, cs:[si	+ 6]
-1   151	01BA  2E: 8A 5C	07		 mov bl, cs:[si	+ 7]
-1   152	01BE  2E: 8A 7C	08		 mov bh, cs:[si	+ 8]
-1   153	01C2  33 C9			 xor cx, cx	     ;
-1   154	01C4  8A CA			 mov cl, dl	     ;cx = dl
-1   155	01C6  E8 0001			 call PutFrameLine   ;draw the first line
-1   156
-1   157	01C9  C3			 ret
-1   158	01CA					 endp
-1   159
-1   160				     ;--------------------------------
-1   161				     ;PutFrameLine
-1   162				     ;--------------------------------
-1   163				     ;EXPECTS:	 es -> videomemory segment
-1   164				     ;		 cld
-1   165				     ;INPUTS:	 di - offset in	videomemory
-1   166				     ;		 ah - color atr	of the symbols
-1   167				     ;		 al - ASCII code of the	1-st symbol
-1   168				     ;		 bl - ASCII code of cx middle symbols
-1   169				     ;		 bh - ASCII code of the	last symbol
-1   170				     ;		 cx - numbers of middle	symbols
-1   171				     ;
-Turbo Assembler	 Version 4.1	    03/02/23 23:45:02	    Page 4
+    115
+    116	018A			     __end_draw_frame:
+    117	018A  58			     pop ax					     ;
+    118	018B  5B			     pop bx					     ;
+    119	018C  59			     pop cx					     ;
+    120	018D  5A			     pop dx					     ;
+    121	018E  5E			     pop si					     ;
+    122	018F  5F			     pop di					     ;
+    123	0190  5D			     pop bp					     ;
+    124	0191  5C			     pop sp					     ;
+    125	0192  1F			     pop ds					     ;
+    126	0193  07			     pop es					     ;
+    127	0194  17			     pop ss					     ;recover value of registers
+    128
+    129	0195  EA			     db	 0eah					     ;make jmp far
+    130	0196  0000		     Old09Offset	     dw	0		     ;jmp offset
+    131	0198  0000		     Old09Segment    dw	0		     ;jmp segment
+    132
+    133	019A			     endp NewInt09
+    134
+    135	019A  0000		     is_frame_visible: dw 0
+    136
+    137				     include FRAME.ASM
+1   138
+1   139				     ;--------------------------------
+1   140				     ;EXPECTS:	 es->videomemory
+1   141				     ;INPUTS:	 bp - offset in	vmem
+1   142				     ;			 dh - height of	frame
+1   143				     ;			 dl - weight of	frame
+1   144				     ;			 ah - color atr
+1   145				     ;		 si - pointer to array with 9 symbols to draw frame in format:
+1   146				     ;		 0:[left  up   corner]
+1   147				     ;		 1:[up	       border]
+1   148				     ;		 2:[right up   corner]
+1   149				     ;		 3:[left       border]
+1   150				     ;		 4:[symbol to fill frame]
+1   151				     ;		 5:[right      border]
+1   152				     ;		 6:[left  down corner]
+1   153				     ;		 7:[bottom     border]
+1   154				     ;		 8:[right down corner]
+1   155				     ;
+1   156				     ;OUTPUTS:	 None
+1   157				     ;DESTROYS:	 bx, cx, di, bp, al, dx
+1   158				     ;--------------------------------
+1   159	019C			     DrawFrame	 proc
+1   160	019C  80 EA 02			 sub dl, 2	     ;now we don`t consider the	1-st and the last symbol, because them we   +
+    161				     will put without loops
+1   162	019F  80 EE 02			 sub dh, 2	     ;the same reason
+1   163
+1   164	01A2  8B FD			 mov di, bp
+1   165	01A4  2E: 8A 04			 mov al, cs:[si	+ 0]
+1   166	01A7  2E: 8A 5C	01		 mov bl, cs:[si	+ 1]
+1   167	01AB  2E: 8A 7C	02		 mov bh, cs:[si	+ 2]
+1   168	01AF  33 C9			 xor cx, cx	     ;
+1   169	01B1  8A CA			 mov cl, dl	     ;cx = dl
+1   170	01B3  E8 003A			 call PutFrameLine   ;draw the first line
+1   171
+Turbo Assembler	 Version 4.1	    03/03/23 01:09:45	    Page 4
 drawreg.asm
 
 
 
-1   172				     ;OUTPUTS:	 None
-1   173				     ;DESTROYS:	 di, al, cx
-1   174				     ;--------------------------------
-1   175	01CA			     PutFrameLine    proc
-1   176	01CA  FC			 cld	     ;ToDo remove
-1   177	01CB  AB			 stosw	     ;put the fisrt symbol
-1   178
-1   179	01CC  8A C3			 mov al, bl  ;change putting simdol to middle symbol
-1   180	01CE  F3> AB			 rep stosw   ;put all middle symbols
-1   181
-1   182	01D0  8A C7			 mov al, bh  ;change putting simdol to the last	symbol
-1   183	01D2  AB			 stosw
-1   184
-1   185	01D3  C3			 ret
-1   186	01D4					     endp
-1   187				     ;--------------------------------
-1   188
-1   189				     ;--------------------------------
-1   190				     ;EXPECTS:	 es->videomemory
-1   191				     ;
-1   192				     ;INPUTS:	 bx - offset in	vmem
-1   193				     ;			 ah - color atr	for reg
-1   194				     ;		 dh - color atr	for numbers
-1   195				     ;
-1   196				     ;DESTROYS:	 bx, di, cx
-1   197				     ;--------------------------------
-1   198	01D4			     DrawRegText proc
-1   199	01D4  33 FF			 xor di, di	     ;di = 0
-1   200	01D6  BF 01F2r			 lea di, cs:RegText
-1   201	01D9  B9 000B			 mov cx, 11d	     ;length of	text
-1   202
-1   203	01DC				 __loop:
-1   204	01DC  2E: 8A 05			     mov al, cs:[di]
-1   205	01DF  26: 89 07			     mov es:[bx], ax
-1   206	01E2  47			     inc di
-1   207
-1   208	01E3  2E: 8A 05			     mov al, cs:[di]
-1   209	01E6  26: 89 47	02		     mov es:[bx+2], ax
-1   210
-1   211	01EA  81 C3 00A0		     add bx, 160d
-1   212	01EE  47			     inc di
-1   213	01EF  E2 EB			     loop __loop
-1   214	01F1  C3			 ret
-1   215
-1   216	01F2			     endp DrawRegText
-1   217				     ;--------------------------------
-1   218	01F2  61 78 62 78 63 78	64+  RegText: db 'ax','bx','cx','dx','si','di','bp','sp','ds','es','ss'
-    219	      78 73 69 64 69 62	70+
-    220	      73 70 64 73 65 73	73+
-    221	      73
-1   222				     ;--------------------------------
-1   223				     ;EXPECTS:	 es->videomemory
-1   224				     ;
-1   225				     ;INPUTS:	 bx - offset in	vmem
-1   226				     ;		 dh - color atr	for numbers
-1   227				     ;		Stack:	 ax	 <--top
-1   228				     ;			 bx
-Turbo Assembler	 Version 4.1	    03/02/23 23:45:02	    Page 5
+1   172	01B6  81 C5 00A0		 add bp, 160d	     ;go to the	next line
+1   173
+1   174	01BA  2E: 8A 5C	04		 mov bl, cs:[si	+ 4]
+1   175	01BE  2E: 8A 7C	05		 mov bh, cs:[si	+ 5]
+1   176	01C2				 __next:
+1   177	01C2  8B FD			     mov di, bp
+1   178	01C4  2E: 8A 44	03		     mov al, cs:[si + 3]    ;rewrite in	the loop because in PutFrameLine al destroys
+1   179	01C8  33 C9			     xor cx, cx		 ;
+1   180	01CA  8A CA			     mov cl, dl		 ;cx = dl
+1   181	01CC  E8 0021			     call PutFrameLine	 ;draw all middle lines
+1   182	01CF  81 C5 00A0		     add bp, 160d	 ;go to	the next line
+1   183
+1   184	01D3  FE CE			     dec dh		 ;dh--
+1   185	01D5  80 FE 00			     cmp dh, 0
+1   186	01D8  75 E8			     jne __next		 ;while(dh!=0)
+1   187
+1   188	01DA  8B FD			 mov di, bp
+1   189	01DC  2E: 8A 44	06		 mov al, cs:[si	+ 6]
+1   190	01E0  2E: 8A 5C	07		 mov bl, cs:[si	+ 7]
+1   191	01E4  2E: 8A 7C	08		 mov bh, cs:[si	+ 8]
+1   192	01E8  33 C9			 xor cx, cx	     ;
+1   193	01EA  8A CA			 mov cl, dl	     ;cx = dl
+1   194	01EC  E8 0001			 call PutFrameLine   ;draw the first line
+1   195
+1   196	01EF  C3			 ret
+1   197	01F0					 endp
+1   198
+1   199				     ;--------------------------------
+1   200				     ;PutFrameLine
+1   201				     ;--------------------------------
+1   202				     ;EXPECTS:	 es -> videomemory segment
+1   203				     ;		 cld
+1   204				     ;INPUTS:	 di - offset in	videomemory
+1   205				     ;		 ah - color atr	of the symbols
+1   206				     ;		 al - ASCII code of the	1-st symbol
+1   207				     ;		 bl - ASCII code of cx middle symbols
+1   208				     ;		 bh - ASCII code of the	last symbol
+1   209				     ;		 cx - numbers of middle	symbols
+1   210				     ;
+1   211				     ;OUTPUTS:	 None
+1   212				     ;DESTROYS:	 di, al, cx
+1   213				     ;--------------------------------
+1   214	01F0			     PutFrameLine    proc
+1   215	01F0  FC			 cld	     ;ToDo remove
+1   216	01F1  AB			 stosw	     ;put the fisrt symbol
+1   217
+1   218	01F2  8A C3			 mov al, bl  ;change putting simdol to middle symbol
+1   219	01F4  F3> AB			 rep stosw   ;put all middle symbols
+1   220
+1   221	01F6  8A C7			 mov al, bh  ;change putting simdol to the last	symbol
+1   222	01F8  AB			 stosw
+1   223
+1   224	01F9  C3			 ret
+1   225	01FA					     endp
+1   226				     ;--------------------------------
+1   227
+1   228				     ;--------------------------------
+Turbo Assembler	 Version 4.1	    03/03/23 01:09:45	    Page 5
 drawreg.asm
 
 
 
-1   229				     ;			 cx
-1   230				     ;			 dx
-1   231				     ;			 si
-1   232				     ;			 di
-1   233				     ;			 bp
-1   234				     ;			 sp
-1   235				     ;			 ds
-1   236				     ;			 es
-1   237				     ;			 ss
-1   238				     ;
-1   239				     ;DESTROYS:	 ax, di, bx, cx, si, bp
-1   240				     ;--------------------------------
-1   241	0208			     DrawRegNumber proc
-1   242	0208  8B EC			 mov bp, sp
-1   243	020A  BF 000B			 mov di, 11d
-1   244	020D  45			 inc bp
-1   245	020E  45			 inc bp
-1   246	020F				 __next:
-1   247	020F  2E: 8B 46	00		     mov word ptr ax, cs:[bp]
-1   248	0213  E8 0072			     call OutputNum16
-1   249	0216  83 C3 08			     add bx, 8d		 ;horisontal offset
-1   250	0219  81 C3 00A0		     add bx, 160d	 ;vertical   offset
-1   251
-1   252	021D  45			     inc bp
-1   253	021E  45			     inc bp
-1   254	021F  4F			     dec di
-1   255	0220  83 FF 00			     cmp di, 0
-1   256	0223  75 EA			     jne __next
-1   257	0225  C3			 ret
-1   258
-1   259	0226			     endp DrawRegNumber
-1   260				     ;--------------------------------
-1   261
-1   262	0226			     .data
-1   263				     ;		 0:[left  up   corner]
-1   264				     ;		 1:[up	       border]
-1   265				     ;		 2:[right up   corner]
-1   266				     ;		 3:[left       border]
-1   267				     ;		 4:[symbol to fill frame]
-1   268				     ;		 5:[right      border]
-1   269				     ;		 6:[left  down corner]
-1   270				     ;		 7:[bottom     border]
-1   271				     ;		 8:[right down corner]
-1   272
-1   273	0000  DA C4 BF 7C 20 7C	C0+  single_frame db 0dah, 0c4h, 0bfh, '|',  ' ', '|',	0c0h, '-',  0d9h
-    274	      2D D9
-1   275
-1   276	0009  C9 CD BB BA 20 BA	C8+  double_frame db 0c9h, 0cdh, 0bbh, 0bah, ' ', 0bah,	0c8h, 0cdh, 0bch
-    277	      CD BC
-1   278
-1   279	0012  09*(20)		     empty_frame db 9 dup(' ')
-    280				     include SMALLIB.ASM
-1   281	001B			     .code
-1   282				     locals __
-1   283
-1   284				     ;-------------------------------------------
-1   285				     ;Put number in dec	form in	videomem
-Turbo Assembler	 Version 4.1	    03/02/23 23:45:02	    Page 6
+1   229				     ;EXPECTS:	 es->videomemory
+1   230				     ;
+1   231				     ;INPUTS:	 bx - offset in	vmem
+1   232				     ;			 ah - color atr	for reg
+1   233				     ;		 dh - color atr	for numbers
+1   234				     ;
+1   235				     ;DESTROYS:	 bx, di, cx
+1   236				     ;--------------------------------
+1   237	01FA			     DrawRegText proc
+1   238	01FA  33 FF			 xor di, di	     ;di = 0
+1   239	01FC  BF 0218r			 lea di, cs:RegText
+1   240	01FF  B9 000B			 mov cx, 11d	     ;length of	text
+1   241
+1   242	0202				 __loop:
+1   243	0202  2E: 8A 05			     mov al, cs:[di]
+1   244	0205  26: 89 07			     mov es:[bx], ax
+1   245	0208  47			     inc di
+1   246
+1   247	0209  2E: 8A 05			     mov al, cs:[di]
+1   248	020C  26: 89 47	02		     mov es:[bx+2], ax
+1   249
+1   250	0210  81 C3 00A0		     add bx, 160d
+1   251	0214  47			     inc di
+1   252	0215  E2 EB			     loop __loop
+1   253	0217  C3			 ret
+1   254
+1   255	0218			     endp DrawRegText
+1   256				     ;--------------------------------
+1   257	0218  61 78 62 78 63 78	64+  RegText: db 'ax','bx','cx','dx','si','di','bp','sp','ds','es','ss'
+    258	      78 73 69 64 69 62	70+
+    259	      73 70 64 73 65 73	73+
+    260	      73
+1   261				     ;--------------------------------
+1   262				     ;EXPECTS:	 es->videomemory
+1   263				     ;
+1   264				     ;INPUTS:	 bx - offset in	vmem
+1   265				     ;		 dh - color atr	for numbers
+1   266				     ;		Stack:	 ax	 <--top
+1   267				     ;			 bx
+1   268				     ;			 cx
+1   269				     ;			 dx
+1   270				     ;			 si
+1   271				     ;			 di
+1   272				     ;			 bp
+1   273				     ;			 sp
+1   274				     ;			 ds
+1   275				     ;			 es
+1   276				     ;			 ss
+1   277				     ;
+1   278				     ;DESTROYS:	 ax, di, bx, cx, si, bp
+1   279				     ;--------------------------------
+1   280	022E			     DrawRegNumber proc
+1   281	022E  8B EC			 mov bp, sp
+1   282	0230  BF 000B			 mov di, 11d
+1   283	0233  45			 inc bp
+1   284	0234  45			 inc bp
+1   285	0235				 __next:
+Turbo Assembler	 Version 4.1	    03/03/23 01:09:45	    Page 6
 drawreg.asm
 
 
 
-1   286				     ;
-1   287				     ;Expects:	     es->Videomem
-1   288				     ;
-1   289				     ;Entry(Stack, reverse getting params):
-1   290				     ;			     1st arg - offset in videomem
-1   291				     ;			     2nd arg - number for output
-1   292				     ;			     3rd arg - color atr for output
-1   293				     ;
-1   294				     ;Output:	     None
-1   295				     ;
-1   296				     ;Destroys:	     cx, ax, dx, bx, di, si
-1   297				     ;
-1   298				     ;-------------------------------------------
-1   299	0226			     GigaOutputNum10 proc
-1   300	0226  55			     push bp		     ;save old bp
-1   301	0227  8B EC			     mov bp, sp
-1   302
-1   303	0229  8B 5E 04			     mov bx, [bp + 4];get memory offset
-1   304	022C  8B 46 06			     mov ax, [bp + 6];get number to output
-1   305	022F  8B 4E 08			     mov cx, [bp + 8];get color	atribute
-1   306
-1   307	0232  D1 E1 D1 E1 D1 E1	D1+	     shl cx, 8		     ;put color	atribute in ch
-    308	      E1 D1 E1 D1 E1 D1	E1+
-    309	      D1 E1
-1   310	0242  E8 0026			     call OutputNum10
+1   286	0235  2E: 8B 46	00		     mov word ptr ax, cs:[bp]
+1   287	0239  E8 0072			     call OutputNum16
+1   288	023C  83 C3 08			     add bx, 8d		 ;horisontal offset
+1   289	023F  81 C3 00A0		     add bx, 160d	 ;vertical   offset
+1   290
+1   291	0243  45			     inc bp
+1   292	0244  45			     inc bp
+1   293	0245  4F			     dec di
+1   294	0246  83 FF 00			     cmp di, 0
+1   295	0249  75 EA			     jne __next
+1   296	024B  C3			 ret
+1   297
+1   298	024C			     endp DrawRegNumber
+1   299				     ;--------------------------------
+1   300
+1   301	024C			     .data
+1   302				     ;		 0:[left  up   corner]
+1   303				     ;		 1:[up	       border]
+1   304				     ;		 2:[right up   corner]
+1   305				     ;		 3:[left       border]
+1   306				     ;		 4:[symbol to fill frame]
+1   307				     ;		 5:[right      border]
+1   308				     ;		 6:[left  down corner]
+1   309				     ;		 7:[bottom     border]
+1   310				     ;		 8:[right down corner]
 1   311
-1   312	0245  5D			     pop bp		     ;restore old bp value
-1   313	0246  C3			     ret
-1   314	0247							     endp
-1   315
-1   316				     ;-------------------------------------------
-1   317				     ;Get number from cmd
-1   318				     ;-------------------------------------------
-1   319				     ;Expects:	     label named buffer
-1   320				     ;
-1   321				     ;Entry:	     None
-1   322				     ;
-1   323				     ;Output:	     ax	- number
-1   324				     ;
-1   325				     ;Destroys:	     cx, dx, di
-1   326				     ;
-1   327				     ;-------------------------------------------
-1   328	0247			     GetNum  proc
-1   329
-1   330	0247  BA 002Br			     lea dx, buffer
-1   331	024A  B4 0A			     mov ah, 0ah
-1   332	024C  CD 21			     int 21h		     ;get number from cml
-1   333
-1   334	024E  33 C9			     xor cx, cx
-1   335	0250  8A 0E 002Cr		     mov cl, buffer[1]	     ;get length of number
-1   336
-1   337	0254  33 C0			     xor ax, ax
-1   338	0256  BF 000A			     mov di, 10d
-1   339	0259  BE 0002			     mov si, 2h
-1   340
-1   341	025C				     __Next:
-1   342	025C  F7 E7				     mul di			     ;ax = ax*10
-Turbo Assembler	 Version 4.1	    03/02/23 23:45:02	    Page 7
+1   312	0000  DA C4 BF 7C 20 7C	C0+  single_frame db 0dah, 0c4h, 0bfh, '|',  ' ', '|',	0c0h, '-',  0d9h
+    313	      2D D9
+1   314
+1   315	0009  C9 CD BB BA 20 BA	C8+  double_frame db 0c9h, 0cdh, 0bbh, 0bah, ' ', 0bah,	0c8h, 0cdh, 0bch
+    316	      CD BC
+1   317
+1   318	0012  09*(20)		     empty_frame db 9 dup(' ')
+    319				     include SMALLIB.ASM
+1   320	001B			     .code
+1   321				     locals __
+1   322
+1   323				     ;-------------------------------------------
+1   324				     ;Put number in dec	form in	videomem
+1   325				     ;
+1   326				     ;Expects:	     es->Videomem
+1   327				     ;
+1   328				     ;Entry(Stack, reverse getting params):
+1   329				     ;			     1st arg - offset in videomem
+1   330				     ;			     2nd arg - number for output
+1   331				     ;			     3rd arg - color atr for output
+1   332				     ;
+1   333				     ;Output:	     None
+1   334				     ;
+1   335				     ;Destroys:	     cx, ax, dx, bx, di, si
+1   336				     ;
+1   337				     ;-------------------------------------------
+1   338	024C			     GigaOutputNum10 proc
+1   339	024C  55			     push bp		     ;save old bp
+1   340	024D  8B EC			     mov bp, sp
+1   341
+1   342	024F  8B 5E 04			     mov bx, [bp + 4];get memory offset
+Turbo Assembler	 Version 4.1	    03/03/23 01:09:45	    Page 7
 drawreg.asm
 
 
 
-1   343	025E  8A 94 002Br			     mov dl, si	+ buffer     ;put in dl	next simbol
-1   344	0262  80 EA 30				     sub dl, '0'		     ;convert simbol to	number
+1   343	0252  8B 46 06			     mov ax, [bp + 6];get number to output
+1   344	0255  8B 4E 08			     mov cx, [bp + 8];get color	atribute
 1   345
-1   346	0265  03 C2				     add ax, dx		     ;ax += dh
-1   347
-1   348	0267  46				     inc si
-1   349	0268  E2 F2				     loop __Next
-1   350	026A  C3			     ret
-1   351	026B				     endp
-1   352
-1   353				     ;-------------------------------------------
+1   346	0258  D1 E1 D1 E1 D1 E1	D1+	     shl cx, 8		     ;put color	atribute in ch
+    347	      E1 D1 E1 D1 E1 D1	E1+
+    348	      D1 E1
+1   349	0268  E8 0026			     call OutputNum10
+1   350
+1   351	026B  5D			     pop bp		     ;restore old bp value
+1   352	026C  C3			     ret
+1   353	026D							     endp
 1   354
 1   355				     ;-------------------------------------------
-1   356				     ;Put number in dec	form in	videomem
-1   357				     ;
-1   358				     ;Expects:	     es->Videomem
+1   356				     ;Get number from cmd
+1   357				     ;-------------------------------------------
+1   358				     ;Expects:	     label named buffer
 1   359				     ;
-1   360				     ;Entry:	     bx	- offset in videomem
-1   361				     ;			     ax	- number for output
-1   362				     ;			     ch	- color	atr for	output
+1   360				     ;Entry:	     None
+1   361				     ;
+1   362				     ;Output:	     ax	- number
 1   363				     ;
-1   364				     ;Output:	     None
+1   364				     ;Destroys:	     cx, dx, di
 1   365				     ;
-1   366				     ;Destroys:	     ax, dx, bx, di, si
-1   367				     ;
-1   368				     ;-------------------------------------------
-1   369	026B			     OutputNum10     proc
-1   370	026B  BE 0005			     mov si, 5			     ;max length of number
-1   371	026E  BF 000A			     mov di, 10d
+1   366				     ;-------------------------------------------
+1   367	026D			     GetNum  proc
+1   368
+1   369	026D  BA 002Br			     lea dx, buffer
+1   370	0270  B4 0A			     mov ah, 0ah
+1   371	0272  CD 21			     int 21h		     ;get number from cml
 1   372
-1   373	0271				     __next:
-1   374	0271  33 D2				     xor dx, dx			     ;dx = 0
-1   375	0273  F7 F7				     div di			     ;ax = dxax/10
-1   376											     ;dx = ax%10
-1   377
-1   378	0275  80 C2 30				     add dl, '0'		     ;make symbol from num
-1   379	0278  8A F5				     mov dh, ch			     ;set color
-1   380
-1   381	027A  26: 89 57	FE			     mov word ptr es:[bx-2], dx	     ;put symbol in vmem
-1   382	027E  83 EB 02				     sub bx, 2
-1   383
-1   384	0281  4E				     dec si
-1   385	0282  83 FE 00				     cmp si, 0
-1   386	0285  75 EA				     jne __next				     ;for(int si = 5; si != 0; si--)
-1   387	0287  C3			     ret
-1   388	0288				     endp
-1   389
-1   390				     ;----------------------------------------------
-1   391				     ;Put number in hex	form in	videomem
-1   392				     ;
-1   393				     ;Expects:	     es->VideoMem
-1   394				     ;
-1   395				     ;Entry:	     bx	- offset in videomem
-1   396				     ;			     ax	- number to output
-1   397				     ;			     dh	- color	atr to output
+1   373	0274  33 C9			     xor cx, cx
+1   374	0276  8A 0E 002Cr		     mov cl, buffer[1]	     ;get length of number
+1   375
+1   376	027A  33 C0			     xor ax, ax
+1   377	027C  BF 000A			     mov di, 10d
+1   378	027F  BE 0002			     mov si, 2h
+1   379
+1   380	0282				     __Next:
+1   381	0282  F7 E7				     mul di			     ;ax = ax*10
+1   382	0284  8A 94 002Br			     mov dl, si	+ buffer     ;put in dl	next simbol
+1   383	0288  80 EA 30				     sub dl, '0'		     ;convert simbol to	number
+1   384
+1   385	028B  03 C2				     add ax, dx		     ;ax += dh
+1   386
+1   387	028D  46				     inc si
+1   388	028E  E2 F2				     loop __Next
+1   389	0290  C3			     ret
+1   390	0291				     endp
+1   391
+1   392				     ;-------------------------------------------
+1   393
+1   394				     ;-------------------------------------------
+1   395				     ;Put number in dec	form in	videomem
+1   396				     ;
+1   397				     ;Expects:	     es->Videomem
 1   398				     ;
-1   399				     ;Output:	     None
-Turbo Assembler	 Version 4.1	    03/02/23 23:45:02	    Page 8
+1   399				     ;Entry:	     bx	- offset in videomem
+Turbo Assembler	 Version 4.1	    03/03/23 01:09:45	    Page 8
 drawreg.asm
 
 
 
-1   400				     ;
-1   401				     ;Destroys:	     ax, dx, bx, cx, si
+1   400				     ;			     ax	- number for output
+1   401				     ;			     ch	- color	atr for	output
 1   402				     ;
-1   403				     ;----------------------------------------------
-1   404	0288			     OutputNum16     proc
-1   405	0288  B9 0004			     mov cx, 4				     ;length of	hex number
-1   406	028B				     __Next:				     ;do
-1   407	028B  BE 000F				     mov si, 000fh
-1   408	028E  23 F0				     and si, ax					     ;get new number
-1   409
-1   410	0290  2E: 8A 94	001Br			     mov dl, cs:[offset	int_to_char_hex[si]] ;make char	from int
+1   403				     ;Output:	     None
+1   404				     ;
+1   405				     ;Destroys:	     ax, dx, bx, di, si
+1   406				     ;
+1   407				     ;-------------------------------------------
+1   408	0291			     OutputNum10     proc
+1   409	0291  BE 0005			     mov si, 5			     ;max length of number
+1   410	0294  BF 000A			     mov di, 10d
 1   411
-1   412	0295  26: 89 57	FE			     mov word ptr es:[bx-2], dx	     ;put symb in vmem
-1   413	0299  83 EB 02				     sub bx, 2					     ;bx -= 2
-1   414
-1   415	029C  D1 C8 D1 C8 D1 C8	D1+		     ror ax, 4					     ;roll in the right	to 4 bytes
-    416	      C8
-1   417	02A4  E2 E5				     loop __Next
-1   418
-1   419	02A6  C3			     ret
-1   420	02A7				     endp
-1   421
-1   422	02A7			     .data
-1   423	001B  30 31 32 33 34 35	36+	     int_to_char_hex db	"0123456789ABCDEF"
-    424	      37 38 39 41 42 43	44+
-    425	      45 46
-1   426
-1   427	002B			     .code
-1   428				     ;----------------------------------------------
-1   429
-1   430				     ;----------------------------------------------
-1   431				     ;Put number in binary form	in videomem
-1   432				     ;
-1   433				     ;Expects:	     es->VideoMem
-1   434				     ;
-1   435				     ;Entry: bx	- offset in videomem
-1   436				     ;		     ax	- number to output
-1   437				     ;		     dh	- color	atr to output
-1   438				     ;
-1   439				     ;Output:	     None
-1   440				     ;
-1   441				     ;Destroys:	     ax, bx,cx,	dl
+1   412	0297				     __next:
+1   413	0297  33 D2				     xor dx, dx			     ;dx = 0
+1   414	0299  F7 F7				     div di			     ;ax = dxax/10
+1   415											     ;dx = ax%10
+1   416
+1   417	029B  80 C2 30				     add dl, '0'		     ;make symbol from num
+1   418	029E  8A F5				     mov dh, ch			     ;set color
+1   419
+1   420	02A0  26: 89 57	FE			     mov word ptr es:[bx-2], dx	     ;put symbol in vmem
+1   421	02A4  83 EB 02				     sub bx, 2
+1   422
+1   423	02A7  4E				     dec si
+1   424	02A8  83 FE 00				     cmp si, 0
+1   425	02AB  75 EA				     jne __next				     ;for(int si = 5; si != 0; si--)
+1   426	02AD  C3			     ret
+1   427	02AE				     endp
+1   428
+1   429				     ;----------------------------------------------
+1   430				     ;Put number in hex	form in	videomem
+1   431				     ;
+1   432				     ;Expects:	     es->VideoMem
+1   433				     ;
+1   434				     ;Entry:	     bx	- offset in videomem
+1   435				     ;			     ax	- number to output
+1   436				     ;			     dh	- color	atr to output
+1   437				     ;
+1   438				     ;Output:	     None
+1   439				     ;
+1   440				     ;Destroys:	     ax, dx, bx, cx, si
+1   441				     ;
 1   442				     ;----------------------------------------------
-1   443	02A7			     OutputNum2	     proc
-1   444
-1   445	02A7  B9 0010			     mov cx, 10h	     ;set number of bits in number
-1   446
-1   447	02AA				     __Next:
-1   448	02AA  B2 01				     mov dl, 1
-1   449	02AC  22 D0				     and dl, al			     ;get last number
-1   450	02AE  80 C2 30				     add dl, '0'		     ;make char	from number
-1   451
-1   452	02B1  D1 C8				     ror ax, 1
-1   453	02B3  26: 89 17				     mov word ptr es:[bx], dx	     ;print 1 or 0
-1   454
-1   455	02B6  83 C3 02				     add bx, 2
-1   456	02B9  E2 EF				     loop __Next
-Turbo Assembler	 Version 4.1	    03/02/23 23:45:02	    Page 9
+1   443	02AE			     OutputNum16     proc
+1   444	02AE  B9 0004			     mov cx, 4				     ;length of	hex number
+1   445	02B1				     __Next:				     ;do
+1   446	02B1  BE 000F				     mov si, 000fh
+1   447	02B4  23 F0				     and si, ax					     ;get new number
+1   448
+1   449	02B6  2E: 8A 94	001Br			     mov dl, cs:[offset	int_to_char_hex[si]] ;make char	from int
+1   450
+1   451	02BB  26: 89 57	FE			     mov word ptr es:[bx-2], dx	     ;put symb in vmem
+1   452	02BF  83 EB 02				     sub bx, 2					     ;bx -= 2
+1   453
+1   454	02C2  D1 C8 D1 C8 D1 C8	D1+		     ror ax, 4					     ;roll in the right	to 4 bytes
+    455	      C8
+1   456	02CA  E2 E5				     loop __Next
+Turbo Assembler	 Version 4.1	    03/03/23 01:09:45	    Page 9
 drawreg.asm
 
 
 
 1   457
-1   458	02BB  C3			     ret
-1   459	02BC				     endp
-1   460				     ;----------------------------------------------
-1   461
-1   462	02BC			     .data
-1   463	002B  05 ?? 05*(20)		     buffer db 5, ?, 5 dup(' ')
-    464
-    465	0032			     EOP:
-    466
-    467	0032			     Main:
-    468
-    469
-    470	0032  33 DB			     xor bx, bx								     ;
-    471	0034  8E C3			     mov es, bx								     ;es = 0
-    472	0036  BB 0024			     mov bx, 4*9							     ;Set es:[bx] to+
-    473				     int table ot 9-th interruption
-    474
-    475	0039  26: 8B 07			     mov ax, word ptr es:[bx]				     ;
-    476	003C  A3 0170r			     mov word ptr [Old09Offset], ax		     ;
-    477	003F  26: 8B 47	02		     mov ax, word ptr es:[bx+2]				     ;
-    478	0043  A3 0172r			     mov word ptr [Old90Segment], ax		     ;save address of old interruption	    +
-    479				     handler
-    480
-    481	0046  FA			     cli
-    482	0047  26: C7 07	0103r		     mov es:[bx], offset NewInt09		     ;
-    483	004C  8C C8			     mov ax, cs								     ;
-    484	004E  26: 89 47	02		     mov es:[bx+2], ax						     ;Put in int table new  +
-    485				     9th int
-    486	0052  FB			     sti
-    487
-    488	0053  B8 3100			     mov ax, 3100h
-    489	0056  BA 0032r			     mov dx, offset EOP
-    490	0059  D1 EA D1 EA D1 EA	D1+	     shr dx, 4								     ;Convert to    +
-    491	      EA		     paragraphs
-    492	0061  42			     inc dx								     ;Round up
-    493	0062  CD 21			     int 21h								     ;End program   +
-    494				     with saving code of new int in memory
-    495
-    496				     end Start
-Turbo Assembler	 Version 4.1	    03/02/23 23:45:02	    Page 10
+1   458	02CC  C3			     ret
+1   459	02CD				     endp
+1   460
+1   461	02CD			     .data
+1   462	001B  30 31 32 33 34 35	36+	     int_to_char_hex db	"0123456789ABCDEF"
+    463	      37 38 39 41 42 43	44+
+    464	      45 46
+1   465
+1   466	002B			     .code
+1   467				     ;----------------------------------------------
+1   468
+1   469				     ;----------------------------------------------
+1   470				     ;Put number in binary form	in videomem
+1   471				     ;
+1   472				     ;Expects:	     es->VideoMem
+1   473				     ;
+1   474				     ;Entry: bx	- offset in videomem
+1   475				     ;		     ax	- number to output
+1   476				     ;		     dh	- color	atr to output
+1   477				     ;
+1   478				     ;Output:	     None
+1   479				     ;
+1   480				     ;Destroys:	     ax, bx,cx,	dl
+1   481				     ;----------------------------------------------
+1   482	02CD			     OutputNum2	     proc
+1   483
+1   484	02CD  B9 0010			     mov cx, 10h	     ;set number of bits in number
+1   485
+1   486	02D0				     __Next:
+1   487	02D0  B2 01				     mov dl, 1
+1   488	02D2  22 D0				     and dl, al			     ;get last number
+1   489	02D4  80 C2 30				     add dl, '0'		     ;make char	from number
+1   490
+1   491	02D7  D1 C8				     ror ax, 1
+1   492	02D9  26: 89 17				     mov word ptr es:[bx], dx	     ;print 1 or 0
+1   493
+1   494	02DC  83 C3 02				     add bx, 2
+1   495	02DF  E2 EF				     loop __Next
+1   496
+1   497	02E1  C3			     ret
+1   498	02E2				     endp
+1   499				     ;----------------------------------------------
+1   500
+1   501	02E2			     .data
+1   502	002B  05 ?? 05*(20)		     buffer db 5, ?, 5 dup(' ')
+    503
+    504	0032			     EOP:
+    505
+    506	0032			     Main:
+    507	0032  33 DB			     xor bx, bx								     ;
+    508	0034  8E C3			     mov es, bx								     ;es = 0
+    509	0036  BB 0020			     mov bx, 4*8							     ;Set es:[bx] to+
+    510				     int table ot 9-th interruption
+    511
+    512	0039  26: 8B 07			     mov ax, word ptr es:[bx]				     ;
+    513	003C  A3 0147r			     mov word ptr [Old08Offset], ax		     ;
+Turbo Assembler	 Version 4.1	    03/03/23 01:09:45	    Page 10
+drawreg.asm
+
+
+
+    514	003F  26: 8B 47	02		     mov ax, word ptr es:[bx + 2]		     ;
+    515	0043  A3 0149r			     mov word ptr [Old08Segment], ax		     ;save address of old 08 interruption   +
+    516				     handler
+    517
+    518	0046  26: 8B 47	04		     mov ax, word ptr es:[bx + 4]		     ;
+    519	004A  A3 0196r			     mov word ptr [Old09Offset], ax		     ;
+    520	004D  26: 8B 47	06		     mov ax, word ptr es:[bx + 6]		     ;
+    521	0051  A3 0198r			     mov word ptr [Old09Segment], ax		     ;save address of old 09 interruption   +
+    522				     handler
+    523
+    524	0054  FA			     cli
+    525	0055  26: C7 07	0103r		     mov es:[bx], offset NewInt08		     ;
+    526	005A  8C C8			     mov ax, cs								     ;
+    527	005C  26: 89 47	02		     mov es:[bx	+ 2], ax					     ;Put in int table new  +
+    528				     8th int handler
+    529
+    530	0060  26: C7 47	04 014Br	     mov es:[bx	+ 4], offset NewInt09		     ;
+    531	0066  8C C8			     mov ax, cs								     ;
+    532	0068  26: 89 47	06		     mov es:[bx	+ 6], ax					     ;Put in int table new  +
+    533				     9th int handler
+    534	006C  FB			     sti
+    535
+    536	006D  B8 3100			     mov ax, 3100h
+    537	0070  BA 0032r			     mov dx, offset EOP
+    538	0073  D1 EA D1 EA D1 EA	D1+	     shr dx, 4								     ;Convert to    +
+    539	      EA		     paragraphs
+    540	007B  42			     inc dx								     ;Round up
+    541	007C  CD 21			     int 21h								     ;End program   +
+    542				     with saving code of new int in memory
+    543
+    544				     end Start
+Turbo Assembler	 Version 4.1	    03/03/23 01:09:45	    Page 11
 Symbol Table
 
 
@@ -547,9 +600,9 @@ Symbol Table
 
 Symbol Name			  Type	 Value
 
-??DATE				  Text	 "03/02/23"
+??DATE				  Text	 "03/03/23"
 ??FILENAME			  Text	 "drawreg "
-??TIME				  Text	 "23:45:02"
+??TIME				  Text	 "01:09:45"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
 @CODE				  Text	 DGROUP
@@ -565,39 +618,48 @@ Symbol Name			  Type	 Value
 @WORDSIZE			  Text	 2
 BUFFER				  Byte	 DGROUP:002B
 DOUBLE_FRAME			  Byte	 DGROUP:0009
-DRAWFRAME			  Near	 DGROUP:0176
-DRAWREGNUMBER			  Near	 DGROUP:0208
-DRAWREGTEXT			  Near	 DGROUP:01D4
+DRAWFRAME			  Near	 DGROUP:019C
+DRAWREGNUMBER			  Near	 DGROUP:022E
+DRAWREGTEXT			  Near	 DGROUP:01FA
 EMPTY_FRAME			  Byte	 DGROUP:0012
 EOP				  Near	 DGROUP:0032
-GETNUM				  Near	 DGROUP:0247
-GIGAOUTPUTNUM10			  Near	 DGROUP:0226
+GETNUM				  Near	 DGROUP:026D
+GIGAOUTPUTNUM10			  Near	 DGROUP:024C
 INT_TO_CHAR_HEX			  Byte	 DGROUP:001B
-IS_FRAME_VISIBLE		  Near	 DGROUP:0174
+IS_FRAME_VISIBLE		  Near	 DGROUP:019A
 MAIN				  Near	 DGROUP:0032
-NEWINT09			  Near	 DGROUP:0103
-OLD09OFFSET			  Word	 DGROUP:0170
-OLD90SEGMENT			  Word	 DGROUP:0172
-OUTPUTNUM10			  Near	 DGROUP:026B
-OUTPUTNUM16			  Near	 DGROUP:0288
-OUTPUTNUM2			  Near	 DGROUP:02A7
-PUTFRAMELINE			  Near	 DGROUP:01CA
-REGTEXT				  Near	 DGROUP:01F2
+NEWINT08			  Near	 DGROUP:0103
+NEWINT09			  Near	 DGROUP:014B
+OLD08OFFSET			  Word	 DGROUP:0147
+OLD08SEGMENT			  Word	 DGROUP:0149
+OLD09OFFSET			  Word	 DGROUP:0196
+OLD09SEGMENT			  Word	 DGROUP:0198
+OUTPUTNUM10			  Near	 DGROUP:0291
+OUTPUTNUM16			  Near	 DGROUP:02AE
+OUTPUTNUM2			  Near	 DGROUP:02CD
+PUTFRAMELINE			  Near	 DGROUP:01F0
+REGTEXT				  Near	 DGROUP:0218
 SINGLE_FRAME			  Byte	 DGROUP:0000
 START				  Near	 DGROUP:0100
-__CLEAR_FRAME			  Near	 DGROUP:014B
-__END_DRAW_FRAME		  Near	 DGROUP:0164
-__LOOP				  Near	 DGROUP:01DC
-__NEXT				  Near	 DGROUP:019C
-__NEXT				  Near	 DGROUP:020F
-__NEXT				  Near	 DGROUP:025C
-__NEXT				  Near	 DGROUP:0271
-__NEXT				  Near	 DGROUP:028B
-__NEXT				  Near	 DGROUP:02AA
+__CLEAR_FRAME			  Near	 DGROUP:0171
+__END_DRAW_FRAME		  Near	 DGROUP:013B
+__END_DRAW_FRAME		  Near	 DGROUP:018A
+__LOOP				  Near	 DGROUP:0202
+__NEXT				  Near	 DGROUP:01C2
+__NEXT				  Near	 DGROUP:0235
+__NEXT				  Near	 DGROUP:0282
+__NEXT				  Near	 DGROUP:0297
+__NEXT				  Near	 DGROUP:02B1
+__NEXT				  Near	 DGROUP:02D0
+Turbo Assembler	 Version 4.1	    03/03/23 01:09:45	    Page 12
+Symbol Table
+
+
+
 
 Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
-  _DATA				  16  0064 Word	  Public  DATA
-  _TEXT				  16  02BC Word	  Public  CODE
+  _DATA				  16  007E Word	  Public  DATA
+  _TEXT				  16  02E2 Word	  Public  CODE
 
