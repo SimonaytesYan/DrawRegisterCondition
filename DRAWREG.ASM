@@ -1,15 +1,15 @@
 .model tiny
-.186
 .code
 org 100h
 locals __
 
 Start:	jmp Main
 
-Int09	proc
-	push es
-	push bx
-	push ax
+
+NewInt09	proc
+	push es						;
+	push bx						;
+	push ax						;save regs
 	
 	mov bx, 0b800h
 	mov es, bx
@@ -17,38 +17,41 @@ Int09	proc
 	
 	mov ah, 07eh
 	in al, 60h					;get scan-code
-	mov word ptr es:[bx], ax
+	mov word ptr es:[bx], ax	;put in videomem
 	
-	in al, 61h				;
-	or al, 80h				;
-	out 61h, al				;
-	and al, not 80h			;
-	out 61h, al				;Say to keyboard controler OK
-	
-	mov al, 20h				;
-	out 20h, al				;Say to int controler OK
+	pop ax						;
+	pop bx						;
+	pop es						;recover value of registers
 
-	pop ax
-	pop bx
-	pop es
+	pushf
+	db  09ah					;make jmp far
+Old09Offset		dw 0			;jmp offset
+Old90Segment 	dw 0			;jmp segment
 	iret
-	endp
-EOP:
+
+endp NewInt09
 
 Main:	
+	xor bx, bx								;
+	mov es, bx								;es = 0
+	mov bx, 4*9								;Set es:[bx] to int table ot 9-th interruption
+
+	mov ax, word ptr es:[bx]				;
+	mov word ptr [Old09Offset], ax			;
+	mov ax, word ptr es:[bx+2]				;
+	mov word ptr [Old90Segment], ax			;save address of old interruption handler
+
 	cli
-	mov bx, 0h					;
-	mov es, bx					;
-	mov bx, 4*9					;
-	mov es:[bx], offset Int09	;
-	mov ax, cs					;
-	mov es:[bx+2], ax			;Put in int table new 9th int
+	mov es:[bx], offset NewInt09	;
+	mov ax, cs						;
+	mov es:[bx+2], ax				;Put in int table new 9th int
 	sti
 	
 	mov ax, 3100h
 	mov dx, offset EOP
-	shr dx, 4			;Convert to paragraphs
-	inc dx				;Round up
-	int 21h				;End program with saving code of new int in memory
+	shr dx, 4					;Convert to paragraphs
+	inc dx						;Round up
+	int 21h						;End program with saving code of new int in memory
 
+EOP:
 end Start

@@ -1,20 +1,20 @@
-Turbo Assembler	 Version 4.1	    02/27/23 19:20:48	    Page 1
+Turbo Assembler	 Version 4.1	    03/02/23 15:54:22	    Page 1
 drawreg.asm
 
 
 
       1	0000			     .model tiny
-      2				     .186
-      3	0000			     .code
-      4				     org 100h
-      5				     locals __
-      6
-      7	0100  EB 25 90		     Start:  jmp Main
+      2	0000			     .code
+      3				     org 100h
+      4				     locals __
+      5
+      6	0100  EB 1D 90		     Start:  jmp Main
+      7
       8
-      9	0103			     Int09   proc
-     10	0103  06			     push es
-     11	0104  53			     push bx
-     12	0105  50			     push ax
+      9	0103			     NewInt09	     proc
+     10	0103  06			     push es					     ;
+     11	0104  53			     push bx					     ;
+     12	0105  50			     push ax					     ;save regs
      13
      14	0106  BB B800			     mov bx, 0b800h
      15	0109  8E C3			     mov es, bx
@@ -22,40 +22,54 @@ drawreg.asm
      17
      18	010E  B4 7E			     mov ah, 07eh
      19	0110  E4 60			     in	al, 60h					     ;get scan-code
-     20	0112  26: 89 07			     mov word ptr es:[bx], ax
+     20	0112  26: 89 07			     mov word ptr es:[bx], ax	     ;put in videomem
      21
-     22	0115  E4 61			     in	al, 61h				     ;
-     23	0117  0C 80			     or	al, 80h				     ;
-     24	0119  E6 61			     out 61h, al			     ;
-     25	011B  24 7F			     and al, not 80h		     ;
-     26	011D  E6 61			     out 61h, al			     ;Say to keyboard controler	OK
-     27
-     28	011F  B0 20			     mov al, 20h			     ;
-     29	0121  E6 20			     out 20h, al			     ;Say to int controler OK
-     30
-     31	0123  58			     pop ax
-     32	0124  5B			     pop bx
-     33	0125  07			     pop es
-     34	0126  CF			     iret
-     35	0127				     endp
-     36	0127			     EOP:
-     37
-     38	0127			     Main:
-     39	0127  BB 0000			     mov bx, 0h					     ;
-     40	012A  8E C3			     mov es, bx					     ;
-     41	012C  BB 0024			     mov bx, 4*9				     ;
-     42	012F  26: C7 07	0103r		     mov es:[bx], offset Int09	     ;
-     43	0134  8C C8			     mov ax, cs					     ;
-     44	0136  26: 89 47	02		     mov es:[bx+2], ax			     ;Put in int table new 9th int
+     22	0115  58			     pop ax					     ;
+     23	0116  5B			     pop bx					     ;
+     24	0117  07			     pop es					     ;recover value of registers
+     25
+     26	0118  9C			     pushf
+     27	0119  9A			     db	 09ah					     ;make jmp far
+     28	011A  0000		     Old09Offset	     dw	0		     ;jmp offset
+     29	011C  0000		     Old90Segment    dw	0		     ;jmp segment
+     30	011E  CF			     iret
+     31
+     32	011F			     endp NewInt09
+     33
+     34	011F			     Main:
+     35	011F  33 DB			     xor bx, bx					     ;
+     36	0121  8E C3			     mov es, bx					     ;es = 0
+     37	0123  BB 0024			     mov bx, 4*9				     ;Set es:[bx] to int table ot 9-th	    +
+     38				     interruption
+     39
+     40	0126  26: 8B 07			     mov ax, word ptr es:[bx]				     ;
+     41	0129  A3 011Ar			     mov word ptr [Old09Offset], ax		     ;
+     42	012C  26: 8B 47	02		     mov ax, word ptr es:[bx+2]				     ;
+     43	0130  A3 011Cr			     mov word ptr [Old90Segment], ax		     ;save address of old interruption	    +
+     44				     handler
      45
-     46	013A  B8 3100			     mov ax, 3100h
-     47	013D  BA 0127r			     mov dx, offset EOP
-     48	0140  C1 EA 04			     shr dx, 4			     ;Convert to paragraphs
-     49	0143  42			     inc dx			     ;Round up
-     50	0144  CD 21			     int 21h			     ;End program with saving code of new int in memory
+     46	0133  FA			     cli
+     47	0134  26: C7 07	0103r		     mov es:[bx], offset NewInt09    ;
+     48	0139  8C C8			     mov ax, cs						     ;
+     49	013B  26: 89 47	02		     mov es:[bx+2], ax				     ;Put in int table new 9th int
+     50	013F  FB			     sti
      51
-     52				     end Start
-Turbo Assembler	 Version 4.1	    02/27/23 19:20:48	    Page 2
+     52	0140  B8 3100			     mov ax, 3100h
+     53	0143  BA 0151r			     mov dx, offset EOP
+     54	0146  D1 EA D1 EA D1 EA	D1+	     shr dx, 4					     ;Convert to paragraphs
+     55	      EA
+     56	014E  42			     inc dx					     ;Round up
+     57	014F  CD 21			     int 21h					     ;End program with saving code of new   +
+Turbo Assembler	 Version 4.1	    03/02/23 15:54:22	    Page 2
+drawreg.asm
+
+
+
+     58				     int in memory
+     59
+     60	0151			     EOP:
+     61				     end Start
+Turbo Assembler	 Version 4.1	    03/02/23 15:54:22	    Page 3
 Symbol Table
 
 
@@ -63,14 +77,14 @@ Symbol Table
 
 Symbol Name			  Type	 Value
 
-??DATE				  Text	 "02/27/23"
+??DATE				  Text	 "03/02/23"
 ??FILENAME			  Text	 "drawreg "
-??TIME				  Text	 "19:20:48"
+??TIME				  Text	 "15:54:22"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
 @CODE				  Text	 DGROUP
 @CODESIZE			  Text	 0
-@CPU				  Text	 0103H
+@CPU				  Text	 0101H
 @CURSEG				  Text	 _TEXT
 @DATA				  Text	 DGROUP
 @DATASIZE			  Text	 0
@@ -79,14 +93,16 @@ Symbol Name			  Type	 Value
 @MODEL				  Text	 1
 @STACK				  Text	 DGROUP
 @WORDSIZE			  Text	 2
-EOP				  Near	 DGROUP:0127
-INT09				  Near	 DGROUP:0103
-MAIN				  Near	 DGROUP:0127
+EOP				  Near	 DGROUP:0151
+MAIN				  Near	 DGROUP:011F
+NEWINT09			  Near	 DGROUP:0103
+OLD09OFFSET			  Word	 DGROUP:011A
+OLD90SEGMENT			  Word	 DGROUP:011C
 START				  Near	 DGROUP:0100
 
 Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
   _DATA				  16  0000 Word	  Public  DATA
-  _TEXT				  16  0146 Word	  Public  CODE
+  _TEXT				  16  0151 Word	  Public  CODE
 
