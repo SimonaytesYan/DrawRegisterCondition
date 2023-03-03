@@ -27,17 +27,17 @@ NewInt08 proc
 		mov bx, 0b800h
 		mov es, bx
 
-		mov bp,	2*160d+134d					;offset in vmem			|
+		mov bp,	1*160d+134d					;offset in vmem			|
 		mov dh, 13d							;height of the frame	|
 		mov dl, 9d							;weight of the frame	| ARGUMENTS TO DRAW FRAME
 		mov ah, 07eh						;color atr				|
 		mov si, cs:[offset double_frame]	;symbols to frame		|
 		call DrawFrame
-			
-		mov bx, 3*160d+136d
+		
+		mov bx, 2*160d+136d		
 		call DrawRegText
 
-		mov bx, 3*160d+150d
+		mov bx, 2*160d+150d
 		mov dh, 71h
 		call DrawRegNumber
 
@@ -54,10 +54,9 @@ __end_draw_frame:
 	pop es						;
 	pop ss						;recover value of registers
 
-
-	db  0eah					;make jmp far
-	Old08Offset		dw 0			;jmp offset
-	Old08Segment 	dw 0			;jmp segment
+	db 0eah						;make jmp far
+	Old08Offset		dw 0		;jmp offset
+	Old08Segment 	dw 0		;jmp segment
 endp NewInt08
 
 NewInt09	proc
@@ -78,25 +77,25 @@ NewInt09	proc
 	
 	jne __end_draw_frame
 		xor bx, bx
-		lea bx, cs:is_frame_visible					;put in bx offset of the label is_frame_visible
-		mov word ptr cx, cs:[bx]					;put in cx status is_frame_visible
+		lea bx, cs:is_frame_visible		;put in bx offset of the label is_frame_visible
+		mov word ptr cx, cs:[bx]		;put in cx status is_frame_visible
 		cmp cx, 1
 
 		je __clear_frame			
-			mov word ptr cs:[bx], 1d				;set new status
+			mov word ptr cs:[bx], 1d		;set new status
 			jmp __end_draw_frame
 		__clear_frame:			
-			mov word ptr cs:[bx], 0d						;set new status
+			mov word ptr cs:[bx], 0d		;set new status
 
-			mov bx, 0b800h				;						|
-			mov es, bx					;			 			|
-			mov bp,	2*160d+134d			;offset in vmem			|
-			mov dh, 13d					;height of the frame	| ARGUMENTS TO DRAW FRAME
-			mov dl, 9d					;weight of the frame 	|
+			mov bx, 0b800h					;						|
+			mov es, bx						;			 			|
+			mov bp,	2*160d+134d				;offset in vmem			|
+			mov dh, 13d						;height of the frame	| ARGUMENTS TO DRAW FRAME
+			mov dl, 9d						;weight of the frame 	|
 			mov ah, 1d
 
-			mov si, cs:[offset empty_frame]					;symbols to frame
-			call DrawFrame
+			mov si, cs:[offset empty_frame]	;symbols to frame		
+			call DrawFrame					;						| CLEAR FRAME
 
 __end_draw_frame:
 	pop ax						;

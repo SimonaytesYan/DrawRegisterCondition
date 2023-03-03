@@ -1,0 +1,46 @@
+Turbo Assembler	 Version 4.1	    03/03/23 01:49:43	    Page 1
+test.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .code
+      3				     org 100h
+      4
+      5	0100			     Start:
+      6	0100  B8 0100			 mov ax, 100h
+      7	0103  EB FE			 __next: jmp __next
+      8					 end Start
+Turbo Assembler	 Version 4.1	    03/03/23 01:49:43	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/03/23"
+??FILENAME			  Text	 "test	  "
+??TIME				  Text	 "01:49:43"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 TEST
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+START				  Near	 DGROUP:0100
+__NEXT				  Near	 DGROUP:0103
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  0105 Word	  Public  CODE
+

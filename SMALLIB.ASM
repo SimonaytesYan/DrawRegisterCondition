@@ -123,7 +123,7 @@ OutputNum16	proc
 	mov cx, 4				;length of hex number
 	__Next:					;do
 		mov si, 000fh
-		and si, ax					;get new number
+		and si, ax			;get new number
 
 		mov dl, cs:[offset int_to_char_hex[si]] ;make char from int
 

@@ -1,4 +1,3 @@
-
 ;--------------------------------
 ;EXPECTS:   es->videomemory
 ;INPUTS:    bp - offset in vmem
@@ -94,7 +93,7 @@ PutFrameLine    proc
 ;		    ah - color atr for reg
 ;           dh - color atr for numbers
 ;
-;DESTROYS:  bx, di, cx
+;DESTROYS:  bx, di, cx, ax
 ;--------------------------------
 DrawRegText proc
     xor di, di          ;di = 0
@@ -137,27 +136,29 @@ RegText: db 'ax','bx','cx','dx','si','di','bp','sp','ds','es','ss'
 ;DESTROYS:  ax, di, bx, cx, si, bp
 ;--------------------------------
 DrawRegNumber proc
+    push bp
+    
     mov bp, sp
+    add bp, 4
+
     mov di, 11d
-    inc bp
-    inc bp
     __next:
-        mov word ptr ax, cs:[bp]
+        mov word ptr ax, [bp]
         call OutputNum16
+
         add bx, 8d          ;horisontal offset
         add bx, 160d        ;vertical   offset
 
-        inc bp
-        inc bp
+        add bp, 2
         dec di
         cmp di, 0
         jne __next
+    pop bp
     ret
 
 endp DrawRegNumber
 ;--------------------------------
 
-.data
 ;           0:[left  up   corner]
 ;           1:[up         border]
 ;           2:[right up   corner]
