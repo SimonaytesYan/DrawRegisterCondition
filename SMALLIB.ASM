@@ -125,7 +125,7 @@ OutputNum16	proc
 		mov si, 000fh
 		and si, ax			;get new number
 
-		mov dl, cs:[offset int_to_char_hex[si]] ;make char from int
+		mov dl, cs:int_to_char_hex[si] ;make char from int
 
 		mov word ptr es:[bx-2], dx	;put symb in vmem
 		sub bx, 2					;bx -= 2
@@ -136,8 +136,7 @@ OutputNum16	proc
 	ret
 	endp
 
-.data 
-	int_to_char_hex	db "0123456789ABCDEF"
+int_to_char_hex	db "0123456789ABCDEF"
 
 .code
 ;----------------------------------------------
@@ -174,5 +173,4 @@ OutputNum2	proc
 	endp
 ;----------------------------------------------
 
-.data 
-	buffer db 5, ?, 5 dup(' ')
+buffer db 5, ?, 5 dup(' ')

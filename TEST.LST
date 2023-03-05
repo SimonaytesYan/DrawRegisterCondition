@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 4.1	    03/03/23 01:49:43	    Page 1
+Turbo Assembler	 Version 4.1	    03/03/23 10:53:15	    Page 1
 test.asm
 
 
@@ -8,10 +8,21 @@ test.asm
       3				     org 100h
       4
       5	0100			     Start:
-      6	0100  B8 0100			 mov ax, 100h
-      7	0103  EB FE			 __next: jmp __next
-      8					 end Start
-Turbo Assembler	 Version 4.1	    03/03/23 01:49:43	    Page 2
+      6	0100  B8 1111			 mov ax, 1111h
+      7	0103  BB 2222			 mov bx, 2222h
+      8	0106  B9 3333			 mov cx, 3333h
+      9	0109  BA 4444			 mov dx, 4444h
+     10	010C				 __next:
+     11	010C  50			     push ax
+     12	010D  E4 60			     in	al, 60h	 ;get scan-code
+     13	010F  3C 01			     cmp al, 1	 ;if ecs pressed
+     14	0111  58			     pop ax
+     15
+     16	0112  75 F8			     jne __next
+     17
+     18	0114  C3			 ret
+     19					 end Start
+Turbo Assembler	 Version 4.1	    03/03/23 10:53:15	    Page 2
 Symbol Table
 
 
@@ -21,7 +32,7 @@ Symbol Name			  Type	 Value
 
 ??DATE				  Text	 "03/03/23"
 ??FILENAME			  Text	 "test	  "
-??TIME				  Text	 "01:49:43"
+??TIME				  Text	 "10:53:15"
 ??VERSION			  Number 040A
 @32BIT				  Text	 0
 @CODE				  Text	 DGROUP
@@ -36,11 +47,11 @@ Symbol Name			  Type	 Value
 @STACK				  Text	 DGROUP
 @WORDSIZE			  Text	 2
 START				  Near	 DGROUP:0100
-__NEXT				  Near	 DGROUP:0103
+__NEXT				  Near	 DGROUP:010C
 
 Groups & Segments		  Bit Size Align  Combine Class
 
 DGROUP				  Group
   _DATA				  16  0000 Word	  Public  DATA
-  _TEXT				  16  0105 Word	  Public  CODE
+  _TEXT				  16  0115 Word	  Public  CODE
 

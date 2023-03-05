@@ -73,7 +73,6 @@ DrawFrame   proc
 ;DESTROYS:  di, al, cx
 ;--------------------------------
 PutFrameLine    proc
-    cld         ;ToDo remove
     stosw       ;put the fisrt symbol
 
     mov al, bl  ;change putting simdol to middle symbol
@@ -98,7 +97,7 @@ PutFrameLine    proc
 DrawRegText proc
     xor di, di          ;di = 0
     lea di, cs:RegText
-    mov cx, 11d         ;length of text
+    mov cx, 11d         ;number of regs
     
     __loop:
         mov al, cs:[di]
@@ -133,7 +132,7 @@ RegText: db 'ax','bx','cx','dx','si','di','bp','sp','ds','es','ss'
 ;                   es
 ;                   ss
 ;                   
-;DESTROYS:  ax, di, bx, cx, si, bp
+;DESTROYS:  ax, di, bx, cx, si
 ;--------------------------------
 DrawRegNumber proc
     push bp
